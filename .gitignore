@@ -1,0 +1,5 @@
+/vendor/
+cert.pem
+cert.pfx
+jwt.txt
+.phpunit.result.cache

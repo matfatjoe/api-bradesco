@@ -1,0 +1,26 @@
+{
+    "name": "matfatjoe/api-bradesco",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "7.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Matfatjoe\\ApiBradesco\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Matheus Furquim"
+        }
+    ],
+    "require-dev": {
+        "pestphp/pest": "^1.22.6"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
