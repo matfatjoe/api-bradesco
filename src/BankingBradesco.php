@@ -22,6 +22,7 @@ class BankingBradesco
 
     private $config;
     private $token;
+    private $tokenExp;
 
     private $uriToken;
     private $clientToken;
@@ -43,11 +44,12 @@ class BankingBradesco
 
         $this->optionsRequest = [
             'headers' => [
-                'Accept' => 'application/x-www-form-urlencoded'
+                'Content-Type' => 'application/x-www-form-urlencoded'
             ]
         ];
         if (isset($this->config['token'])) {
-            if ($this->config['token'] != '') {
+            $iat = $this->getIat();
+            if ($this->config['token'] != '' && $iat <= $this->tokenExp) {
                 $this->setToken($this->config['token']);
             } else {
                 $this->gerarToken();
@@ -91,7 +93,7 @@ class BankingBradesco
             );
             $response = $response['response'];
 
-            $this->token = $response->access_token;
+            $this->setToken($response->access_token);
             $this->optionsRequest['headers']['Authorization'] = "Bearer {$this->token}";
         } catch (\Exception $e) {
             throw $e;
@@ -114,6 +116,7 @@ class BankingBradesco
             'jti' => intval($iat . '000'),
             'ver' => '1.1'
         ]);
+        $this->tokenExp = $iat + 3600;
 
         return base64_encode($header) . '.' . base64_encode($payload);
     }
@@ -124,12 +127,9 @@ class BankingBradesco
         $privateKeyId = openssl_pkey_get_private($privateKey);
         openssl_sign($jwt, $signature, $privateKeyId, OPENSSL_ALGO_SHA256);
 
-        openssl_free_key($privateKeyId);
         $base64Signature = base64_encode($signature);
         $urlSafeSignature = strtr($base64Signature, '+/', '-_');
-        $finalSignature = rtrim($urlSafeSignature, '=');
-
-        return $finalSignature;
+        return rtrim($urlSafeSignature, '=');
     }
 
     private function getIat(): int
@@ -144,7 +144,6 @@ class BankingBradesco
     {
         try {
             $this->getToken();
-
             $response = $client->request($method, $uri, $options);
             $statusCode = $response->getStatusCode();
             $result = json_decode($response->getBody()->getContents());
